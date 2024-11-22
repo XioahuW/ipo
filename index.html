@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小型网站多人视频通话</title>
+</head>
+
+<body>
+  <h1>多人视频通话</h1>
+  <div id="video-container"></div>
+
+  <script>
+    // 获取视频容器
+    const videoContainer = document.getElementById('video-container');
+
+    // 定义媒体流和对等连接
+    let localStream;
+    let peerConnection;
+
+    // 获取用户媒体流
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+     .then(stream => {
+        localStream = stream;
+        // 将本地视频流添加到页面
+        const localVideo = document.createElement('video');
+        localVideo.srcObject = stream;
+        localVideo.autoplay = true;
+        videoContainer.appendChild(localVideo);
+
+        // 创建对等连接
+        peerConnection = new RTCPeerConnection();
+
+        // 将本地流添加到对等连接
+        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+        // 处理传入的远程流
+        peerConnection.ontrack = event => {
+          const remoteVideo = document.createElement('video');
+          remoteVideo.srcObject = event.streams[0];
+          remoteVideo.autoplay = true;
+          videoContainer.appendChild(remoteVideo);
+        };
+
+        // 创建并发送 offer
+        peerConnection.createOffer()
+         .then(offer => peerConnection.setLocalDescription(offer))
+         .then(() => {
+            // 这里可以通过某种方式（比如将 offer 发送给其他参与者）共享连接信息
+          });
+      })
+     .catch(error => console.error('获取媒体流错误：', error));
+  </script>
+</body>
+
+</html>
